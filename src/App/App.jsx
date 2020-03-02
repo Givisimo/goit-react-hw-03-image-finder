@@ -21,14 +21,6 @@ const App = () => {
 
   const [isModalOpen, handleModalOpen] = useState(false);
 
-  useEffect(() => {
-    fetchImgs();
-  }, [query]);
-
-  // useEffect(() => {
-  //   scroll();
-  // }, [images.length]);
-
   const scroll = () =>
     window.scrollTo({
       top: document.documentElement.scrollHeight,
@@ -48,10 +40,15 @@ const App = () => {
       .then(data => {
         handleImgs(prevState => [...prevState, ...data]);
         hanldePageNumber(prevState => prevState + 1);
+        scroll();
       })
       .catch(err => console.log(err))
       .finally(() => handleIsLoading(false));
   };
+
+  useEffect(() => {
+    fetchImgs();
+  }, [query]);
 
   const onImgClick = id => {
     const image = images.find(item => item.id === id);
