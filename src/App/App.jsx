@@ -50,18 +50,20 @@ const App = () => {
     fetchImgs();
   }, [query]);
 
-  const onImgClick = id => {
-    const image = images.find(item => item.id === id);
-    handleImageLarge(image.largeImageURL);
-    openModal();
-  };
-
   const openModal = () => handleModalOpen(true);
 
   const closeModal = () => {
     handleImageLarge('');
     handleModalOpen(false);
   };
+
+  const onImgClick = id => {
+    const image = images.find(item => item.id === id);
+    handleImageLarge(image.largeImageURL);
+    openModal();
+  };
+
+
 
   return (
     <div className={styles.App}>
