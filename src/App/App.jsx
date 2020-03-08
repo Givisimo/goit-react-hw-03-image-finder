@@ -63,8 +63,6 @@ const App = () => {
     openModal();
   };
 
-
-
   return (
     <div className={styles.App}>
       <Searchbar onSubmit={onSubmit} />
