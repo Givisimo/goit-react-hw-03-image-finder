@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import Loader from 'react-loader-spinner';
 import Searchbar from '../Searchbar/Searchbar';
 import ImageGallery from '../ImageGallery/ImageGallery';
@@ -8,85 +8,78 @@ import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css';
 import Modal from '../Modal/Modal';
 import styles from './App.module.css';
 
-class App extends Component {
-  state = {
-    images: [],
-    query: '',
-    pageNumber: 1,
-    isLoading: false,
-    imageLarge: null,
-    isModalOpen: false,
-  };
+const App = () => {
+  const [images, handleImgs] = useState([]);
 
-  componentDidUpdate(prevProps, prevState) {
-    const { query, images } = this.state;
-    if (prevState.query !== query) {
-      this.fetchImgs();
-    }
-    if (prevState.images.length !== images.length) {
-      this.scroll();
-    }
-  }
+  const [query, handleQuery] = useState('');
 
-  scroll = () =>
+  const [pageNumber, hanldePageNumber] = useState(1);
+
+  const [isLoading, handleIsLoading] = useState(false);
+
+  const [imageLarge, handleImageLarge] = useState(null);
+
+  const [isModalOpen, handleModalOpen] = useState(false);
+
+  const scroll = () =>
     window.scrollTo({
       top: document.documentElement.scrollHeight,
       behavior: 'smooth',
     });
 
-  onSubmit = query => {
-    this.setState({ query, pageNumber: 1, images: [] });
+  const onSubmit = newQuery => {
+    handleQuery(newQuery);
+    hanldePageNumber(1);
+    handleImgs([]);
   };
 
-  fetchImgs = () => {
-    const { query, pageNumber } = this.state;
-    this.setState({ isLoading: true });
+  const fetchImgs = () => {
+    handleIsLoading(true);
     api
       .fetchImgs(query, pageNumber)
       .then(data => {
-        this.setState(state => ({
-          images: [...state.images, ...data],
-          pageNumber: state.pageNumber + 1,
-        }));
+        handleImgs(prevState => [...prevState, ...data]);
+        hanldePageNumber(prevState => prevState + 1);
+        scroll();
       })
       .catch(err => console.log(err))
-      .finally(() => this.setState({ isLoading: false }));
+      .finally(() => handleIsLoading(false));
   };
 
-  onImgClick = id => {
-    const { images } = this.state;
+  useEffect(() => {
+    fetchImgs();
+  }, [query]);
+
+  const onImgClick = id => {
     const image = images.find(item => item.id === id);
-    this.setState({ imageLarge: image.largeImageURL });
-    this.openModal();
+    handleImageLarge(image.largeImageURL);
+    openModal();
   };
 
-  openModal = () => this.setState({ isModalOpen: true });
+  const openModal = () => handleModalOpen(true);
 
-  closeModal = () => this.setState({ isModalOpen: false });
+  const closeModal = () => {
+    handleImageLarge('');
+    handleModalOpen(false);
+  };
 
-  render() {
-    const { images, isLoading, imageLarge, isModalOpen } = this.state;
-
-    return (
-      <div className={styles.App}>
-        <Searchbar onSubmit={this.onSubmit} />
-        <div className={styles.loader}>
-          {isLoading && (
-            <Loader type="Puff" color="#00BFFF" height={100} width={100} />
-          )}
-        </div>
-
-        {images.length > 0 && (
-          <ImageGallery images={images} imageClick={this.onImgClick} />
-        )}
-
-        {images.length > 0 && <Button loadMore={this.fetchImgs} />}
-        {isModalOpen && (
-          <Modal imageLarge={imageLarge} onClose={this.closeModal} />
+  return (
+    <div className={styles.App}>
+      <Searchbar onSubmit={onSubmit} />
+      <div className={styles.loader}>
+        {isLoading && (
+          <Loader type="Puff" color="#00BFFF" height={100} width={100} />
         )}
       </div>
-    );
-  }
-}
+
+      {images.length > 0 && (
+        <ImageGallery images={images} imageClick={onImgClick} />
+      )}
+
+      {images.length > 0 && <Button loadMore={fetchImgs} />}
+      {isModalOpen && <Modal imageLarge={imageLarge} onClose={closeModal} />}
+    </div>
+  );
+};
 
 export default App;
